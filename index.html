@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteVault — Academic Note Sharing Platform</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ───────────────────────────── NAVBAR ───────────────────────────── -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="logo" onclick="showPage('home')">
+      <span class="logo-icon">📚</span>
+      <span class="logo-text">NoteVault</span>
+    </a>
+
+    <div class="nav-links" id="navLinks">
+      <a href="#" class="nav-link" onclick="showPage('home')" data-page="home">Home</a>
+      <a href="#" class="nav-link" onclick="showPage('browse')" data-page="browse">Browse Notes</a>
+      <a href="#" class="nav-link auth-required hidden" onclick="showPage('dashboard')" data-page="dashboard">Dashboard</a>
+      <a href="#" class="nav-link auth-required hidden" onclick="showPage('upload')" data-page="upload">Upload</a>
+      <a href="#" class="nav-link admin-only hidden" onclick="showPage('admin')" data-page="admin">Admin Panel</a>
+    </div>
+
+    <div class="nav-search">
+      <input type="text" id="globalSearch" placeholder="Search notes, subjects…" oninput="handleGlobalSearch(this.value)" />
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <div class="nav-actions">
+      <div class="guest-actions" id="guestActions">
+        <button class="btn btn-outline" onclick="showPage('login')">Log In</button>
+        <button class="btn btn-primary" onclick="showPage('register')">Sign Up</button>
+      </div>
+      <div class="user-actions hidden" id="userActions">
+        <div class="avatar-menu" onclick="toggleAvatarMenu()">
+          <div class="avatar" id="userAvatar">U</div>
+          <span id="userName">User</span>
+          <span>▾</span>
+          <div class="avatar-dropdown hidden" id="avatarDropdown">
+            <a href="#" onclick="showPage('profile')">👤 My Profile</a>
+            <a href="#" onclick="showPage('my-notes')">📄 My Notes</a>
+            <a href="#" onclick="showPage('favorites')">❤️ Favorites</a>
+            <hr/>
+            <a href="#" onclick="logout()" class="logout-link">🚪 Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="hamburger" onclick="toggleMobileMenu()" id="hamburger">☰</button>
+  </div>
+</nav>
+
+<!-- ───────────────────────────── TOAST ───────────────────────────── -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- ═══════════════════════════ PAGES ════════════════════════════════ -->
+<main id="app">
+
+  <!-- ════ HOME PAGE ════ -->
+  <section class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">Free Upload • Free Download</div>
+        <h1 class="hero-title">Share Knowledge.<br/>Ace Your Semester.</h1>
+        <p class="hero-sub">NoteVault is the academic note exchange built for students — upload your notes, discover resources sorted by department, semester, and subject.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg" onclick="showPage('browse')">Browse Notes</button>
+          <button class="btn btn-outline btn-lg" onclick="showPage('register')">Start Uploading →</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-num" id="statNotes">1,240</span><span class="stat-label">Notes Shared</span></div>
+          <div class="stat"><span class="stat-num" id="statUsers">380</span><span class="stat-label">Students</span></div>
+          <div class="stat"><span class="stat-num" id="statDepts">12</span><span class="stat-label">Departments</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="floating-card fc1">
+          <span class="fc-icon">📘</span>
+          <div><strong>Data Structures</strong><br/><small>CS • Sem 3 • 42 downloads</small></div>
+        </div>
+        <div class="floating-card fc2">
+          <span class="fc-icon">🧪</span>
+          <div><strong>Organic Chemistry</strong><br/><small>Chem • Sem 2 • 31 downloads</small></div>
+        </div>
+        <div class="floating-card fc3">
+          <span class="fc-icon">📐</span>
+          <div><strong>Linear Algebra</strong><br/><small>Maths • Sem 1 • 58 downloads</small></div>
+        </div>
+        <div class="hero-blob"></div>
+      </div>
+    </div>
+
+    <!-- Featured Notes -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Trending Notes</h2>
+        <a href="#" onclick="showPage('browse')" class="see-all">See all →</a>
+      </div>
+      <div class="notes-grid" id="featuredNotes"></div>
+    </div>
+
+    <!-- Departments -->
+    <div class="section section-alt">
+      <div class="section-header"><h2>Browse by Department</h2></div>
+      <div class="dept-grid" id="deptGrid"></div>
+    </div>
+  </section>
+
+  <!-- ════ BROWSE PAGE ════ -->
+  <section class="page" id="page-browse">
+    <div class="page-header">
+      <h1>Browse Notes</h1>
+      <p>Filter by department, semester, or subject to find exactly what you need.</p>
+    </div>
+    <div class="browse-layout">
+      <aside class="filters-sidebar">
+        <h3>Filters</h3>
+        <div class="filter-group">
+          <label>Department</label>
+          <select id="filterDept" onchange="applyFilters()">
+            <option value="">All Departments</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Semester</label>
+          <select id="filterSem" onchange="applyFilters()">
+            <option value="">All Semesters</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4">Semester 4</option>
+            <option value="5">Semester 5</option>
+            <option value="6">Semester 6</option>
+            <option value="7">Semester 7</option>
+            <option value="8">Semester 8</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Subject</label>
+          <select id="filterSubject" onchange="applyFilters()">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Topic</label>
+          <input type="text" id="filterTopic" placeholder="e.g. Sorting algorithms" oninput="applyFilters()" />
+        </div>
+        <div class="filter-group">
+          <label>Sort By</label>
+          <select id="filterSort" onchange="applyFilters()">
+            <option value="newest">Newest First</option>
+            <option value="popular">Most Downloaded</option>
+            <option value="rating">Highest Rated</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear Filters</button>
+      </aside>
+      <div class="browse-results">
+        <div class="results-bar">
+          <span id="resultsCount">Showing all notes</span>
+        </div>
+        <div class="notes-grid" id="browseNotes"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ NOTE DETAIL PAGE ════ -->
+  <section class="page" id="page-note-detail">
+    <div class="note-detail-wrap" id="noteDetailContent"></div>
+  </section>
+
+  <!-- ════ DASHBOARD ════ -->
+  <section class="page" id="page-dashboard">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p id="dashGreeting">Welcome back!</p>
+    </div>
+    <div class="dashboard-stats" id="dashStats"></div>
+    <div class="section">
+      <div class="section-header">
+        <h2>My Recent Uploads</h2>
+        <button class="btn btn-primary btn-sm" onclick="showPage('upload')">+ Upload New</button>
+      </div>
+      <div class="notes-grid" id="myRecentNotes"></div>
+    </div>
+    <div class="section">
+      <h2>My Favorites</h2>
+      <div class="notes-grid" id="myFavNotes"></div>
+    </div>
+  </section>
+
+  <!-- ════ MY NOTES ════ -->
+  <section class="page" id="page-my-notes">
+    <div class="page-header">
+      <h1>My Notes</h1>
+      <button class="btn btn-primary" onclick="showPage('upload')">+ Upload New Note</button>
+    </div>
+    <div class="notes-grid" id="myAllNotes"></div>
+  </section>
+
+  <!-- ════ FAVORITES ════ -->
+  <section class="page" id="page-favorites">
+    <div class="page-header"><h1>Saved Favorites</h1></div>
+    <div class="notes-grid" id="favNotes"></div>
+  </section>
+
+  <!-- ════ UPLOAD PAGE ════ -->
+  <section class="page" id="page-upload">
+    <div class="form-page">
+      <div class="form-card wide">
+        <h2>Upload a Note</h2>
+        <p class="form-sub">Share your notes with fellow students. All uploads are free.</p>
+        <form onsubmit="submitUpload(event)">
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Title *</label>
+              <input type="text" id="upTitle" placeholder="e.g. Data Structures Complete Notes" required />
+            </div>
+            <div class="form-group">
+              <label>Subject *</label>
+              <input type="text" id="upSubject" placeholder="e.g. Data Structures" required />
+            </div>
+          </div>
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Department *</label>
+              <select id="upDept" required>
+                <option value="">Select Department</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Semester *</label>
+              <select id="upSem" required>
+                <option value="">Select Semester</option>
+                <option value="1">Semester 1</option><option value="2">Semester 2</option>
+                <option value="3">Semester 3</option><option value="4">Semester 4</option>
+                <option value="5">Semester 5</option><option value="6">Semester 6</option>
+                <option value="7">Semester 7</option><option value="8">Semester 8</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Topic / Unit</label>
+            <input type="text" id="upTopic" placeholder="e.g. Unit 3 – Trees and Graphs" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="upDesc" rows="3" placeholder="Briefly describe what this note covers…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Tags (comma-separated)</label>
+            <input type="text" id="upTags" placeholder="e.g. algorithms, sorting, complexity" />
+          </div>
+          <div class="form-group">
+            <label>File *</label>
+            <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault()" ondrop="handleFileDrop(event)">
+              <span class="file-drop-icon">📎</span>
+              <p>Click to browse or drag & drop</p>
+              <small>PDF, DOCX, PPT — max 20 MB</small>
+              <input type="file" id="fileInput" accept=".pdf,.docx,.pptx,.txt" onchange="handleFileSelect(this)" hidden />
+            </div>
+            <div class="file-preview hidden" id="filePreview"></div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg full-width">Submit for Review</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ PROFILE PAGE ════ -->
+  <section class="page" id="page-profile">
+    <div class="profile-wrap" id="profileContent"></div>
+  </section>
+
+  <!-- ════ ADMIN PANEL ════ -->
+  <section class="page" id="page-admin">
+    <div class="page-header">
+      <h1>🛡 Admin Panel</h1>
+      <p>Review, approve, edit or delete uploaded notes.</p>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('pending', this)">Pending (<span id="pendingCount">0</span>)</button>
+      <button class="admin-tab" onclick="switchAdminTab('approved', this)">Approved</button>
+      <button class="admin-tab" onclick="switchAdminTab('users', this)">Users</button>
+    </div>
+    <div id="adminContent"></div>
+  </section>
+
+  <!-- ════ LOGIN PAGE ════ -->
+  <section class="page" id="page-login">
+    <div class="form-page">
+      <div class="form-card">
+        <div class="form-logo">📚 NoteVault</div>
+        <h2>Welcome back</h2>
+        <p class="form-sub">Log in to access your notes and uploads.</p>
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="you@university.edu" required />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg full-width">Log In</button>
+        </form>
+        <p class="form-switch">Don't have an account? <a href="#" onclick="showPage('register')">Sign up free</a></p>
+        <div class="demo-accounts">
+          <p><strong>Demo accounts:</strong></p>
+          <button class="btn btn-outline btn-sm" onclick="demoLogin('student')">👨‍🎓 Student Login</button>
+          <button class="btn btn-outline btn-sm" onclick="demoLogin('admin')">🛡 Admin Login</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ REGISTER PAGE ════ -->
+  <section class="page" id="page-register">
+    <div class="form-page">
+      <div class="form-card">
+        <div class="form-logo">📚 NoteVault</div>
+        <h2>Create your account</h2>
+        <p class="form-sub">Free to join, free to upload, free to download.</p>
+        <form onsubmit="handleRegister(event)">
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" id="regFirst" placeholder="Arjun" required />
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" id="regLast" placeholder="Kumar" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="regEmail" placeholder="you@university.edu" required />
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <select id="regDept" required>
+              <option value="">Select your department</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="regPassword" placeholder="Min. 8 characters" minlength="8" required />
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" id="regPassword2" placeholder="Repeat password" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg full-width">Create Account</button>
+        </form>
+        <p class="form-switch">Already have an account? <a href="#" onclick="showPage('login')">Log in</a></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ───────────────────── NOTE DETAIL MODAL ───────────────────── -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()" id="noteModal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ───────────────────────── FOOTER ───────────────────────────── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="logo-icon">📚</span> <strong>NoteVault</strong>
+      <p>Academic notes, freely shared.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#" onclick="showPage('browse')">Browse Notes</a>
+      <a href="#" onclick="showPage('register')">Sign Up</a>
+      <a href="#" onclick="showPage('login')">Log In</a>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 NoteVault. Built for students, by students.</div>
+</footer>
+
+<script src="data.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
