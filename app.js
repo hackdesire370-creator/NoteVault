@@ -659,4 +659,6 @@ function emptyState(icon, title, msg = '', action = '') {
     ${msg ? `<p>${msg}</p>` : ''}
     ${action ? `<button class="btn btn-primary" onclick="${action}">Browse Notes</button>` : ''}
   </div>`;
+  
 }
+            
