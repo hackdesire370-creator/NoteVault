@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderFeaturedNotes();
   renderBrowseNotes();
   updateStats();
+  
 });
 
 // ─── PAGE ROUTING ─────────────────────────────────────
@@ -21,6 +22,8 @@ function showPage(pageId) {
   const adminPages = ['admin'];
   if (authPages.includes(pageId)  && !requireAuth())  return;
   if (adminPages.includes(pageId) && !requireAdmin())  return;
+
+  
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + pageId);
