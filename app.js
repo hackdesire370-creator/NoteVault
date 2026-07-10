@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   restoreSession();
   updateAuthUI();
   populateDeptsDropdowns();
+  
   populateSubjectDropdown();
   renderDeptGrid();
   renderFeaturedNotes();
@@ -51,6 +52,7 @@ function showPage(pageId) {
   closeAvatarMenu();
 }
 
+
 // ─── DROPDOWN POPULATION ──────────────────────────────
 function populateDeptsDropdowns() {
   const selectors = ['#filterDept', '#upDept', '#regDept'];
@@ -80,6 +82,9 @@ function populateUploadDepts() {
   });
 }
 
+
+
+
 function populateSubjectDropdown() {
   const el = document.getElementById('filterSubject');
   if (!el) return;
@@ -106,7 +111,8 @@ function renderFeaturedNotes() {
                    .sort((a, b) => b.downloads - a.downloads)
                    .slice(0, 6);
   container.innerHTML = top.length ? top.map(noteCard).join('') : emptyState('No notes yet.', 'Be the first to upload!');
-}
+} 
+
 
 function renderDeptGrid() {
   const container = document.getElementById('deptGrid');
